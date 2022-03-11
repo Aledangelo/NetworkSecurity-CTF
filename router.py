@@ -91,23 +91,6 @@ def logout():
 
 @app.route('/login', methods=['POST'])
 def login():
-    '''
-    if request.method == 'POST':
-        nome = request.form['nome']
-        pwd = request.form['pass']
-
-        res = dbSql.selectRowByParam('nome', nome, 'account')
-        if res is not None and len(res) != 0:
-            if res[0]['password'] != pwd:
-                return None
-            else:
-                # session = ''.join(random.choice('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890')
-                # for x in range(32))
-                id = res[0]['id']
-                session["user"] = id
-                return render_template('dasboard.html', nome=nome)
-    '''
-
     nome = request.form['nome']
     passw = request.form['pass']
 
