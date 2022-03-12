@@ -12,6 +12,8 @@ COPY requirements.txt /requirements.txt
 RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip install --prefix=/install -r /requirements.txt
 
+USER guest
+
 FROM base
 ENV FLASK_APP=router.py
 WORKDIR /project
