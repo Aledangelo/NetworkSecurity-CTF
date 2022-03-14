@@ -4,89 +4,50 @@ from flask import render_template
 from flask import Flask, redirect, url_for
 from flask import request, jsonify, session, make_response
 import sys
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, set_access_cookies
 
 from db_modules.connector import dbSql
 
 sys.path.insert(1, '/Users/alessandro/Documents/Università/NetworkSecurity/progettino')
 
-
 app = Flask(__name__)
-
-app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
 app.config['SECRET_KEY'] = 'mUcKhRX2OrcfRvtH_oe5QHnowvIfA_JYih-5QcpZmd8'
-jwt = JWTManager(app)
-
-'''
-def token_required(func):
-    @wraps(func)
-    def decorate(*args, **kwargs):
-        token = request.args.get('token')
-        print(token)
-        if not token:
-            return jsonify('Alert: Token is missing or corrupted')
-        try:
-            payload = jwt.decode(token, app.config['SECRET_KEY'])
-            print(payload)
-            expiration = datetime.fromisoformat(payload['expiration'])
-            if expiration > datetime.utcnow():
-                res = dbSql.selectRowByParam('id', payload['id'], 'account')
-                if res[0]['id'] != payload['id']:
-                    return jsonify('Alert: Token is missing or corrupted')
-        except Exception as e:
-            return jsonify('Alert: ' + str(e))
-        return func(*args, **kwargs)
-
-    return decorate
-
-'''
 
 
 @app.route('/manage', methods=["GET"])
-@jwt_required()
 def manage_system():
-    auth = dbSql.selectRowByParam('id', get_jwt_identity(), 'account')
-    if auth[0]['sessione'] is None:
-        return render_template("index.html")
-    if auth[0]['id'] != 2:
-        return render_template("dasboard.html")
-
+    if not session.get("nome"):
+        return redirect(url_for('home'))
+    elif session.get("nome") != 'admin':
+        return redirect(url_for('home'))
     dir = request.args.get("dir_form")
     result = os.popen('ls -l ' + str(dir))
     return render_template("admin.html", dir=result.readlines())
 
 
 @app.route('/admin', methods=["GET"])
-@jwt_required()
 def admin_page():
-    auth = dbSql.selectRowByParam('id', get_jwt_identity(), 'account')
-    if auth[0]['sessione'] is None:
-        return render_template("index.html")
-    if auth[0]['id'] != 2:
-        return render_template("dasboard.html")
+    if not session.get("nome"):
+        return redirect(url_for('home'))
+    elif session.get("nome") != 'admin':
+        return redirect(url_for('home'))
     return render_template("admin.html")
 
 
 @app.route('/search', methods=['GET'])
-@jwt_required()
 def cerca():
     args = request.args
-    # print(get_jwt_identity())
-    auth = dbSql.selectRowByParam('id', get_jwt_identity(), 'account')
-    if auth[0]['sessione'] is None:
-        return render_template('index.html')
+    if not session.get("nome"):
+        return redirect(url_for('home'))
     res = dbSql.selectRowByParam('nome', args.get("nome"), 'prodotti')
     return render_template('res.html', res=res)
-    # return dbSql.selectRowByParam('nome', args.get("nome"), 'prodotti')
 
 
 @app.route('/logout', methods=['GET'])
-@jwt_required()
 def logout():
-    session['logged_in'] = False
-    # dbSql.updateRowByParam('sessione', get_jwt_identity(), 'account', 'id', 'null')
-    dbSql.deleteSession(get_jwt_identity(), 'account')
-    return render_template('index.html')
+    session.pop("nome", None)
+    return redirect(url_for('home'))
 
 
 @app.route('/login', methods=['POST'])
@@ -97,11 +58,8 @@ def login():
     if nome and passw:
         res = dbSql.selectRowByParam('nome', nome, 'account')
         if res[0]['password'] == passw:
-            access_token = create_access_token(identity=res[0]['id'])
-            dbSql.updateRowByParam('sessione', res[0]['id'], 'account', 'id', access_token)
-            resp = make_response(redirect(url_for('sboard')))
-            set_access_cookies(resp, access_token)
-            return resp
+            session["nome"] = nome
+            return redirect(url_for('home'))
         else:
             return make_response('Utente non trovato', 403,
                                  {'WWW-Authenticate': 'Basic realm: "Authentication Failed"'})
@@ -112,22 +70,18 @@ def login():
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template('index.html')
+    if not session.get("nome"):
+        return render_template('index.html')
+    if session.get("nome") == "admin":
+        return redirect(url_for("admin_page"))
+    return redirect(url_for('sboard'))
 
 
 @app.route('/dashboard', methods=['GET'])
-@jwt_required()
 def sboard():
-    auth = dbSql.selectRowByParam('id', get_jwt_identity(), 'account')
-    if auth[0]['sessione'] is None:
-        return render_template('index.html')
+    if not session.get("nome"):
+        return redirect(url_for('home'))
     return render_template('dasboard.html')
-
-
-@app.route('/demo', methods=['GET'])
-def search():
-    args = request.args
-    return dbSql.selectRowByParam('nome', args.get("nome"), 'prova')
 
 
 if __name__ == '__main__':

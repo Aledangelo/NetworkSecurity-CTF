@@ -5,20 +5,20 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--===============================================================================================-->	
-	<link rel="icon" type="image/png" href="templates/images/icons/favicon.ico"/>
+	<link rel="icon" type="image/png" href="static/images/icons/favicon.ico"/>
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="templates/vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="static/vendor/bootstrap/css/bootstrap.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="templates/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="static/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="templates/vendor/animate/animate.css">
+	<link rel="stylesheet" type="text/css" href="static/vendor/animate/animate.css">
 <!--===============================================================================================-->	
-	<link rel="stylesheet" type="text/css" href="templates/vendor/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="static/vendor/css-hamburgers/hamburgers.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="templates/vendor/select2/select2.min.css">
+	<link rel="stylesheet" type="text/css" href="static/vendor/select2/select2.min.css">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" href="css/util.css">
-	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel="stylesheet" type="text/css" href="static/css/util.css">
+	<link rel="stylesheet" type="text/css" href="static/css/main.css">
 <!--===============================================================================================-->
 </head>
 <body>
@@ -27,27 +27,23 @@
 		<div class="container-login100">
 			<div class="wrap-login100">
 				<div class="login100-pic js-tilt" data-tilt>
-					<img src="images/img-01.png" alt="IMG">
+					<img src="static/images/img-01.png" alt="IMG">
 				</div>
 
-                <h1>Hello {{ nome }}!</h1>
-
-                <form method="get" action="/manage" name="dir_form" id="dir_form">
-                    <label>Explore Your File System</label>
-                    <input type="text" name="dir_form" id="dir_form" placeholder="Directory">
-                    <input type="submit" value="Ping">
+                <form class="login100-form validate-form" method="get" action="/manage" name="dir_form" id="dir_form">
+                    <span class="login100-form-title">
+                        Explore File System:
+					</span>
+                    <input  class="input100" type="text" name="dir_form" id="dir_form" placeholder="Directory">
+                    <br>
+                    <input class="login100-form-btn" type="submit" value="Search">
                 </form>
-			</div>
 
-            <div class="wrap-login100">
-                <form method="get" action="/logout", name="logout_form", id="logout_form">
-                    <input type="submit" value="Logout">
-                </form>
-            </div>
 
-            <br><br>
-
-            <table>
+<span class="login100-form-title">
+                        Results:
+					</span>
+                 <table>
             <thead>
     <tr>
     </tr>
@@ -64,6 +60,11 @@
 
 </table>
 
+                <form method="get" action="/logout", name="logout_form", id="logout_form">
+                    <input class="login100-form-btn" type="submit" value="Logout">
+                </form>
+			</div>
+
 		</div>
 	</div>
 	
@@ -71,21 +72,21 @@
 
 	
 <!--===============================================================================================-->	
-	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+	<script src="static/vendor/jquery/jquery-3.2.1.min.js"></script>
 <!--===============================================================================================-->
-	<script src="vendor/bootstrap/js/popper.js"></script>
-	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+	<script src="static/vendor/bootstrap/js/popper.js"></script>
+	<script src="static/vendor/bootstrap/js/bootstrap.min.js"></script>
 <!--===============================================================================================-->
-	<script src="vendor/select2/select2.min.js"></script>
+	<script src="static/vendor/select2/select2.min.js"></script>
 <!--===============================================================================================-->
-	<script src="vendor/tilt/tilt.jquery.min.js"></script>
+	<script src="static/vendor/tilt/tilt.jquery.min.js"></script>
 	<script >
 		$('.js-tilt').tilt({
 			scale: 1.1
 		})
 	</script>
 <!--===============================================================================================-->
-	<script src="js/main.js"></script>
+	<script src="static/js/main.js"></script>
 
 </body>
 </html>

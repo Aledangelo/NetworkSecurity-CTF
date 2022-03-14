@@ -1,6 +1,6 @@
 import db_modules.mySql as sql
 
-__host = '100.103.0.26'
+__host = '192.168.1.55'
 __user = 'alessandro'
 __password = 'loportoIO99'
 __port = 3306
