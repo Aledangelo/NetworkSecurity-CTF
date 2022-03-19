@@ -49,6 +49,8 @@ It turns out that there is a database called "networkSecurity" with a table call
 
 ## Command Injection
 
+** Command Injection** is an attacck in wich the goal is execution of arbitrary commands on the host operating system via a vulnerable application. These attacks are possible when an application passes unsafe user supplied data (forms, cookies, HTTP headers etc.) to a system shell. In this attack, the attacker-supplied operating system command are usually executed with the privileges of the vulnerable application. Command injection attacks are possible largely due to insufficient input validation.
+
 ## Privilege Escalation
 
 ## Cracking Password
