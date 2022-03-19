@@ -28,8 +28,9 @@ It's an open source penetration testing tool that automates the process of detec
 
 If you are using the attacking machine that was provided to you, sqlmap is already installed. Otherwise, you can download it here: https://github.com/sqlmapproject/sqlmap
 
+It is good to check if the "nome" parameter is vulnerable, to do this you need to use the following command:
 
-
+**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session:<stolen session>"
 
 ## Command Injection
 
