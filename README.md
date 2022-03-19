@@ -22,6 +22,13 @@ You can assume that this query is to search for stored products of a table. Is t
 
 This type of injection utilises the **SQL UNION** operator alongside a **SELECT** statement to return additional results to the page. This method is the most common way of extracting large amounts of data via an SQL Injection vulnerability.
 
+### SQLMap
+
+It's an open source penetration testing tool that automates the process of detecting and exploiting SQL injection flaws and taking over database servers.
+
+If you are using the attacking machine that was provided to you, sqlmap is already installed. Otherwise, you can download it here: https://github.com/sqlmapproject/sqlmap
+
+
 
 
 ## Command Injection
