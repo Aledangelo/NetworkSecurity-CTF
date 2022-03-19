@@ -19,6 +19,7 @@ From the URL above, you can see that the results comes from the "nome" parameter
 You can assume that this query is to search for stored products of a table. Is there a way to explore the other tables?
 
 **Union-Based SQL Injection**
+
 This type of injection utilises the **SQL UNION** operator alongside a **SELECT** statement to return additional results to the page. This method is the most common way of extracting large amounts of data via an SQL Injection vulnerability.
 
 
