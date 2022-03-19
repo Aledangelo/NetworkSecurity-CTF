@@ -14,7 +14,7 @@ In this scenario, it is possible to search among the products in the database us
 * http://193.20.1.2:5000/search?nome=mela
 
 From the URL above, you can see that the results comes from the "nome" parameter in the query string. The web application needs to retreive the article from the database and may use an SQL statement that looks something like the following:
-**[...] SELECT all FROM table WHERE nome=mela [...]**
+* **[...] SELECT all FROM table WHERE nome=mela [...]**
 
 You can assume that this query is to search for stored products of a table. Is there a way to explore the other tables?
 
