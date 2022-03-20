@@ -146,7 +146,7 @@ A good practice would be to compare executables on this list with GTFOBins (http
 We can notice that **base64** command has the bit **s** set. As you can read at the following link:
 * https://gtfobins.github.io/gtfobins/base64/#suid
 
-Thanks to this, it is possible to read files on which the admin user doesn't have access permissions by running:
+It is possible to read files on which the admin user doesn't have access permissions by running:
 * **base64 file | base64 -d**
 
 ## Cracking Password
