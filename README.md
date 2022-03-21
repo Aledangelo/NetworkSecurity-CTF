@@ -9,8 +9,65 @@
 * Steal the root password
 
 ## Man In The Middle
+A man-in-the-middle attack requires three players. There’s the victim, the entity with which the victim is trying to communicate, and the **man in the middle**, who’s intercepting the victim’s communications. Critical to the scenario is that the victim isn’t aware of the man in the middle.
+
+It comes in two forms, one that involves physical proximity to the intended target, and another that involves malicious software, or malware. This second form is also called a **man-in-the-browser attack**.
+
+### Types of man-in-the-middle attacks
+
+Cybercriminals can use MITM attacks to gain control of devices in a variety of ways.
+* **1) IP Spoofing**
+
+By spoofing an IP address, an attacker can trick you into thinking you’re interacting with a website or someone you’re not, perhaps giving the attacker access to information you’d otherwise not share.
+
+* **2) DNS Spoofing**
+
+DNS spoofing is a technique that forces a user to a fake website rather than the real one the user intends to visit. If you are a victim of DNS spoofing, you may think you’re visiting a safe, trusted website when you’re actually interacting with a fraudster. The perpetrator’s goal is to divert traffic from the real site or capture user login credentials.
+
+* **3) HTTP Spoofing**
+
+When doing business on the internet, seeing “HTTPS” in the URL, rather than “HTTP” is a sign that the website is secure and can be trusted. In fact, the “S” stands for “secure.” An attacker can fool your browser into believing it’s visiting a trusted website when it’s not. By redirecting your browser to an unsecure website, the attacker can monitor your interactions with that website and possibly steal personal information you’re sharing.
+
+* **4) SSL Hijacking**
+
+In an SSL hijacking, the attacker uses another computer and secure server and intercepts all the information passing between the server and the user’s computer.
+
+* **5) Email Hijacking**
+
+Cybercriminals sometimes target email accounts of banks and other financial institutions. Once they gain access, they can monitor transactions between the institution and its customers. The attackers can then spoof the bank’s email address and send their own instructions to customers. This convinces the customer to follow the attackers’ instructions rather than the bank’s. As a result, an unwitting customer may end up putting money in the attackers’ hands.
+
+* **6) ARP Spoofing**
+
+In computer networking, ARP spoofing, ARP cache poisoning, or ARP poison routing, is a technique by which an attacker sends (spoofed) Address Resolution Protocol (ARP) messages onto a local area network. Generally, the aim is to associate the attacker's MAC address with the IP address of another host, such as the default gateway, causing any traffic meant for that IP address to be sent to the attacker instead. 
 
 ## Cookie Stealing and Hijacking Session
+
+**:warning: IN THIS CASE, THE ATTACKER IS ASSUMED TO BE CONNECTED ON THE SAME NETWORK OF WEB APPLICATION.:warning:**
+
+With the previous scan we discovered the IP address of the web application and of another endpoint, with which it is probably communicating.
+
+To carry out this attack it is necessary to enable ip forwarding with the systemcall:
+* **sysctl -w net.ipv4.ip_forward=1**
+(The attacker machine has been properly configured and there is no need for this command)
+
+Using this command, it's possible to check on which network interface the attacking machine receives communications:
+* **ip a**
+
+Our purpose is to steal a possible session in order to access the service. To do this, we use the **arpspoof** command present in the **dsniff** suite of tools:
+* **arpspoof -i eth0 -t 193.20.1.5 193.20.1.2 2> /dev/null &**
+* **arpspoof -i eth0 -t 193.20.1.2 193.20.1.5 2> /dev/null &**
+
+In this way, the attacker is getting in the way of the communication between the server and the victim endpoint. If he wasn't connected to the internal network, it would have been necessary to intercept communications between the gateway and the other nodes on the network.
+
+Now that we are intercepting the traffic, we need to use a tool to be able to read the communication. On the attacker machine is pre-installed the tool **tcpdump**. If you're using your own machine, you can download it from here: 
+* https://www.tcpdump.org/
+
+To steal the session cookie, you can read the http packets' header using the following command:
+* **tcpdump -i eth0 -s 0 -A 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'**
+	* **tcp[((tcp[12:1] & 0xf0) >> 2):4]**: first determines the location of the bytes you're interested in (after the TCP header) and then selects the 4bytes we wish to match against.
+	* **0x47455420**: depicts the ASCII value of the characters 'G' 'E' 'T' ' '
+
+In the output, you can notice that there is a cookie named **session**. If you're using **Firefox** right click on the application's login page and select **inspect**, after that select the **Storage** section and add a new cookie named "session" with the session value you've obtained before.
 
 ## SQL injection
 
@@ -46,7 +103,7 @@ To check if the "name" parameter is vulnerable it is necessary to set the sessio
 After that we can proceed to inspect the databases:
 
 **sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" --tables**
-* **--tables**: Enumaret DBMS database tables
+* **--tables**: Enumerate DBMS database tables
 
 It turns out that there is a database called "networkSecurity" with a table called "account". The last step is to see the contents of this table:
 
