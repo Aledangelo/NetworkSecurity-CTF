@@ -1,5 +1,9 @@
 # Network Security DSP
 
+### Machines
+* Web Application: http://127.0.0.1:8088
+* Attacker: http://127.0.0.1:7681
+
 ### Goals
 * Read the file "flag.txt"
 * Steal the root password
@@ -53,7 +57,7 @@ It turns out that there is a database called "networkSecurity" with a table call
 
 ## Command Injection
 
-**Command Injection** is an attack in wich the goal is execution of arbitrary commands on the host operating system via a vulnerable application. These attacks are possible when an application passes unsafe user supplied data (forms, cookies, HTTP headers etc.) to a system shell. In this attack, the attacker-supplied operating system command are usually executed with the privileges of the vulnerable application. Command injection attacks are possible largely due to insufficient input validation.
+**Command Injection** is an attacck in wich the goal is execution of arbitrary commands on the host operating system via a vulnerable application. These attacks are possible when an application passes unsafe user supplied data (forms, cookies, HTTP headers etc.) to a system shell. In this attack, the attacker-supplied operating system command are usually executed with the privileges of the vulnerable application. Command injection attacks are possible largely due to insufficient input validation.
 
 Having logged in with the admin credentials, you are redirected to the /admin page. You may notice a form that says "*Explore your File System*", using this feature the admin can navigate through the folders containing the source codes for the web application. It is possible to assume that the web application uses a function to launch commands that will be executed by the shell.
 The command being executed probably looks something like this:
@@ -104,34 +108,44 @@ Enumeration is the first step you have to take once you gain access to any syste
 
 Shown below are some of the possible ways to get system information.
 
-* ### uname -a
+* **uname -a**
+
 Will print system information giving us additional detail about the kernel used by the system. This will be useful when searching for any potential kernel vulnerabilities that could lead to privilege escalation
 
-* ### /proc/version
+* **/proc/version**
+
 Looking at /proc/version may give you information on the kernel version and additional data such as whether a compiler (e.g. GCC) is installed.
 
-* ### ps Command
+* **ps Command**
+
 The **ps** command is an effective way to see the running processes on a Linux system. Typing ps on your terminal will show processes for the current shell. 
 
-* ### env
+* **env**
+
 The env command will show environmental variables. The PATH variable may have a compiler or a scripting language (e.g. Python) that could be used to run code on the target system or leveraged for privilege escalation.
 
-* ### sudo -l
+* **sudo -l**
+
 The target system may be configured to allow users to run some (or all) commands with root privileges. The sudo -l command can be used to list all commands your user can run using sudo.
 
-* ### id
+* **id**
+
 The id command will provide a general overview of the user’s privilege level and group memberships. It is worth remembering that the id command can also be used to obtain the same information for another user as seen below.
 
-* ### /etc/passwd
+* **/etc/passwd**
+
 Reading the /etc/passwd file can be an easy way to discover users on the system. 
 
-* ### ifconfig
+* **ifconfig**
+
 The target system may be a pivoting point to another network. The ifconfig command will give us information about the network interfaces of the system. 
 
-* ### netstat
+* **netstat**
+
 Following an initial check for existing interfaces and network routes, it is worth looking into existing communications. The netstat command can be used with several different options to gather information on existing connections. 
 
-* ### find Command
+* **find Command**
+
 Searching the target system for important information and potential privilege escalation vectors can be fruitful. The built-in “find” command is useful and worth keeping in your arsenal.
 
 ### SUID
@@ -150,3 +164,72 @@ It is possible to read files on which the admin user doesn't have access permiss
 * **base64 file | base64 -d**
 
 ## Cracking Password
+Linux systems use a password file to store accounts, commonly available as **/etc/passwd**. For additional safety measures, a shadow copy of this file is used which includes the passwords of your users. Or actually hashed password, for maximum security.
+
+An example of a password entry in **/etc/shadow** may look like this:
+
+*user1:$6$6Y/fI1nx$zQJj6AH9asTNfhxV7NoVgxByJyE.rVKK6tKXiOGNCfWBsrTGY7wtC6Cep6co9eVNkRFrpK6koXs1NU3AZQF8v/:16092:0:99999:7:::*
+
+### 1) Username
+The first field is the username of the particular account
+
+### 2) Password hashing details + hashed password
+The most important string is definitely the second one. It includes password details and consist of several parts:
+* **$6** = SHA-512
+* **$6Y/fI1nx$** = Salt and separators. The salt is a small string of characters to mix into the hashing function. Its goal is making it more difficult to perform certain password based attacks on the hashed password.
+* **Long string of characters** = hashed password
+* **Lengths**:
+	* **$6** = SHA-512 with 86 characters
+	* **$5** = SHA-256 with 43 characters
+	* **$1** = MD5 with 22 characters
+
+### 3) Last Changed
+This number indicates when the password was last changed. The number does indicate the day number, starting from epoch date (1 Januari 1970).
+
+### 4) Number of days before password can be changed
+This field defines how long it takes before the password can be changed. In our case zero, so it can be changed now.
+
+### 5) Number of days till required password change
+Another pretty self-explanatory field, stating how long is left (in days), before a password change is required. A great option to force password changes.
+
+### 6) Warning threshold in days
+In line with previous field it describes the number of days till a warning will be giving. In this example it is a week.
+
+### 7) Expire data
+Also stored in days, describing when the account was expired (from epoch date).
+
+### 8) Reserved field
+Usually not used by Linux distributions.
+
+### File Permission
+The **/etc/shadow** file should be owned by the root user, with usually shadow as group owner. This file should not be world-readable, therefore 640 or 400 would be an appropriate file permission.
+
+### John The Ripper - Password Cracker
+John The Ripper (JTR) is one of the most popular password cracking tools available in most Penetration testing Linux distributions like Kali Linux, Parrot OS, etc. John The Ripper password cracking utility brags of a user-friendly command-line interface and the ability to detect most password hash types. 
+
+Password cracking with JtR is an iterative process. A word is selected from the wordlist, hashed with the same hash algorithm used to hash the password, and the resulting hash is compared with the password hash. If they match, then the word picked from the wordlist is the original password. If they don't match, JtR will pick another word to repeat the same process until a match is found. And as you guessed it! This process can take some time if the password used was complex. John the Ripper supports most encryption technologies found in UNIX and Windows systems.
+
+If you are using the attacking machine that was provided to you, JtR is already installed. Otherwise, you can download it here: https://github.com/openwall/john
+
+Once you have discovered the passwd and shadow files, you can try to find out the passwords of various users, especially the root user.
+
+First use the unshadow command to combines the /etc/passwd and /etc/shadow files so John can use them
+* **unshadow passwd shadow > unshadow**
+
+On a normal system you’ll need to run unshadow as root to be able to read the shadow file. So login as root or use old good sudo / su command under Debian / Ubuntu Linux.
+
+To use John, you just need to supply it a password file created using unshadow command along with desired options. If no mode is specified, john will try “single” first, then “wordlist” and finally “incremental” password cracking methods.
+
+The "rockyou" dictionary is already present on the attacker machine with some possible passwords to try. Also, in the shadow file we can see the **$1** symbol, this means that it has been hashed with MD5.
+
+* **john --wordlist=path/to/wordlist --format=MD5crypt unshadow**
+	* **--wordlist**: Wordlist mode, read words from FILE or stdin
+	* **--format**: Force the hash of the specified type
+
+This procedure will take its own time. To see the cracked passwords, enter:
+
+* **john --show unshadow**
+	* **--show**: Show cracked passwords
+
+If the root password is present in the dictionary used, it will be shown on the screen.
+
