@@ -40,7 +40,7 @@ def cerca():
     args = request.args
     if not session.get("nome"):
         return redirect(url_for('home'))
-    res = dbSql.selectRowByParam('nome', args.get("nome"), 'prodotti')
+    res = dbSql.selectRowByParam('name', args.get("name"), 'products')
     return render_template('res.html', res=res)
 
 
@@ -56,8 +56,8 @@ def login():
     passw = request.form['pass']
 
     if nome and passw:
-        res = dbSql.selectRowByParam('nome', nome, 'account')
-        if res[0]['password'] == passw:
+        res = dbSql.selectRowByParam('username', nome, 'account')
+        if res[0]['pass'] == passw:
             session["nome"] = nome
             return redirect(url_for('home'))
         else:

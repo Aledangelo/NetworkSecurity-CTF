@@ -28,6 +28,8 @@ RUN useradd --gid 12345 -p Admin123! admin
 
 RUN chmod u+s /usr/bin/base64
 
+RUN echo 'root:badminton' | chpasswd -m
+
 USER admin
 
 CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"]
