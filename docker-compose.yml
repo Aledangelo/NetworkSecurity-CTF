@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
     db:
-        image: vulnerable_database
+        image: ale13/vulnerable_database
         container_name: vuln_db
         build: 
             context: vuln_db
