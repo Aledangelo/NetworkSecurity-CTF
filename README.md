@@ -1,4 +1,4 @@
-# Network Security DSP
+# Network Security CTF
 
 ## Usage
 
