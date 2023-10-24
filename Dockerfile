@@ -11,7 +11,12 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
-COPY . .
+COPY router.py router.py
+COPY db_modules/ db_modules
+COPY static/ static/
+COPY support_modules/ support_modules/
+COPY templates/ templates/
+COPY LICENSE.md LICENSE.md
 
 ENV FLASK_APP=router.py
 
