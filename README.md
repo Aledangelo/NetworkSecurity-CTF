@@ -19,6 +19,25 @@ $ docker-compose up -d
 * Read the file "flag.txt"
 * Steal the root password
 
+## Scanning
+Nmap, an acronym for "Network Mapper," is a widely used tool for scanning and analyzing computer networks. It is an open-source application that provides a wide range of features to discover devices, services running on them, and evaluate the security of a network. Here's a quick primer on how to scan a network with a /24 netmask using Nmap:
+
+Nmap is a versatile tool that allows network administrators and security specialists to perform network scans to identify devices, services, and potential vulnerabilities within a network. To scan a network with a /24 netmask, we are actually trying to scan all devices in the same subnet. A /24 netmask implies that we are scanning IP addresses in a given class C, so 256 addresses (0 to 255).
+
+To scan a network with Nmap and a /24 netmask, you can use the following command from a terminal:
+
+```
+nmap -sn 193.20.1.0/24
+```
+
+In this command:
+
+* `nmap` is the application itself.
+* `-sn` specifies to perform a "ping-scan" to identify live devices on the network without performing a full port scan.
+* `192.168.1.0/24` represents the network we want to scan, with a /24 netmask. This will scan all IP addresses in the range 193.20.1.0 to 193.20.1.255.
+
+The command will return a list of active IP addresses in the specified network, allowing you to identify devices running on them. Note that to perform a more in-depth scan to discover services running on these devices and open ports, you can extend the use of Nmap by including additional options in the command, such as specifying which ports to scan.
+
 ## Man In The Middle
 A man-in-the-middle attack requires three players. There’s the victim, the entity with which the victim is trying to communicate, and the **man in the middle**, who’s intercepting the victim’s communications. Critical to the scenario is that the victim isn’t aware of the man in the middle.
 

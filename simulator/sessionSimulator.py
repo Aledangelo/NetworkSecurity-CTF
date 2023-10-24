@@ -2,7 +2,7 @@ import requests
 from time import sleep
 
 url_login = 'http://193.20.1.2:5000/login'
-url_search = 'http://193.20.1.2:5000/search?nome='
+url_search = 'http://193.20.1.2:5000/search?name='
 payload = {'nome': 'guest', 'pass': 'guest'}
 
 p = ['apple', 'watermelon', 'banana']
