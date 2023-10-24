@@ -24,9 +24,9 @@ RUN apt update
 
 USER root
 
-RUN echo "DSP{N3TW0RK_S3CUR1TY_FL4G}" > /flag.txt
-RUN chown root:root /flag.txt
-RUN chmod 700 /flag.txt
+RUN echo "FL4G{N3TW0RK_S3CUR1TY_By_Aledangelo}" > /root/flag.txt
+RUN chown root:root /root/flag.txt
+RUN chmod 700 /root/flag.txt
 
 RUN groupadd --gid 12345 docker
 RUN useradd --gid 12345 -p Admin123! admin

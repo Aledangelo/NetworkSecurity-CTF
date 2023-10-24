@@ -1,8 +1,6 @@
-# pip3 install mysql-connector-python
 import mysql.connector
 
 
-# Sarebbe buono valutare di usare anche il timeout per le connessioni
 class MySql():
     def __init__(self, host: str, user: str, password: str, database: str, port: int = 3306) -> None:
         self.__host = host
@@ -11,7 +9,7 @@ class MySql():
         self.__port = port
         self.__database = database
 
-    def connect(self) -> None:  # Sta roba poi va gestita meglio con le eccezioni
+    def connect(self) -> None:  
         self.__conn = mysql.connector.connect(
             host=self.__host,
             user=self.__user,
@@ -20,16 +18,16 @@ class MySql():
             database=self.__database
         )
 
-    # Metodo generico dato un parametro (e una tabella) ritorna l'intera riga (in un dizionario) ad esso associata
+    
     def selectRowByParam(self, paramKey: str, paramValue: str, table: str) -> list:
         query = f"SELECT * FROM {table} WHERE  {paramKey} = '{paramValue}';"
         
         try:
             c = self.__conn.cursor(prepared=True)
             c.execute(query)
-            rows = c.fetchall()  # In realtà qui tornerà sempre e solo una riga
+            rows = c.fetchall()  
             result = []
-            for r in rows:  # Questo for viene eseguito solo una volta su una sola riga
+            for r in rows:  
                 result.append(dict(zip(c.column_names, r)))
         except ConnectionError as e:
             result = []
@@ -40,24 +38,22 @@ class MySql():
 
     def updateRowByParam(self, paramKey1: str, paramValue: str, table: str, paramKey2: str, Value: str):
         query = f"UPDATE {table} SET {paramKey1} = '{Value}' WHERE  {paramKey2} = '{paramValue}';"
-        # print(query)
-        c = self.__conn.cursor(prepared=True)
-        c.execute(query)
-        self.__conn.commit()  # aggiorno il db, vedere cosa ritorna commit per eventuali check
-
-    def insertAccount(self, paramValue1: str, paramValue2: str, paramValue3: str,
-                  paramValue4: str, paramValue5: str, paramValue6: str, paramValue7: str, paramValue8: str):
-        #try:
-        query = f"INSERT INTO greenaccount(nome,cognome,citta,email,pwd,cellulare,nascita,valid) VALUES " \
-                f"('{paramValue1}','{paramValue2}','{paramValue3}','{paramValue4}','{paramValue5}','{paramValue6}','" \
-                f"{paramValue7}','{paramValue8}');"
-        # print(query)
         c = self.__conn.cursor(prepared=True)
         c.execute(query)
         self.__conn.commit()
-          #  return True
-       # except:
-          #  return False
+
+    def insertAccount(self, paramValue1: str, paramValue2: str, paramValue3: str,
+                  paramValue4: str, paramValue5: str, paramValue6: str, paramValue7: str, paramValue8: str):
+        try:
+            query = f"INSERT INTO greenaccount(nome,cognome,citta,email,pwd,cellulare,nascita,valid) VALUES " \
+                    f"('{paramValue1}','{paramValue2}','{paramValue3}','{paramValue4}','{paramValue5}','{paramValue6}','" \
+                    f"{paramValue7}','{paramValue8}');"
+            c = self.__conn.cursor(prepared=True)
+            c.execute(query)
+            self.__conn.commit()
+            return True
+        except Exception:
+            return False
 
     def deleteSession(self, paramValue: str, table: str):
         query = f"UPDATE {table} SET sessione = null WHERE id = {paramValue}"
@@ -67,14 +63,12 @@ class MySql():
 
     def deleteRowByParam(self, paramKey: str, paramValue: str, table: str):
         query = f"DELETE FROM {table} WHERE {paramKey} = '{paramValue}';"
-        # print(query)
         c = self.__conn.cursor(prepared=True)
         c.execute(query)
-        self.__conn.commit() #aggiorno db
+        self.__conn.commit()
 
     def insertToken(self, paramValue1: str, paramValue2: str, paramValue3: str, table: str):
         query = f"INSERT INTO {table}(id,token,userType) VALUES ('{paramValue1}','{paramValue2}','{paramValue3}');"
-        # print(query)
         c = self.__conn.cursor(prepared=True)
         c.execute(query)
         self.__conn.commit()
@@ -87,7 +81,7 @@ if __name__ == '__main__':
     port=3306
     database='green'
 
-    table = 'session'  # Quando crei il DB sii coerende con queste colonne
+    table = 'session'
     paramKey = 'token'
     paramValue = '12'
 
