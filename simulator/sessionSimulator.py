@@ -8,7 +8,7 @@ payload = {'nome': 'guest', 'pass': 'guest'}
 p = ['apple', 'watermelon', 'banana']
 i = 0
 
-sleep(10)
+sleep(30)
     
 s = requests.Session()
 x = s.post(url_login, data=payload)
@@ -20,4 +20,4 @@ while True:
     if i >= 3:
         i = 0
     
-    sleep(5)
+    sleep(60)
