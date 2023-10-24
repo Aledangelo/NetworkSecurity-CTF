@@ -36,7 +36,7 @@ def admin_page():
 
 
 @app.route('/search', methods=['GET'])
-def cerca():
+def search():
     args = request.args
     if not session.get("nome"):
         return redirect(url_for('home'))

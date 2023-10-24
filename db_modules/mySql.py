@@ -23,14 +23,19 @@ class MySql():
     # Metodo generico dato un parametro (e una tabella) ritorna l'intera riga (in un dizionario) ad esso associata
     def selectRowByParam(self, paramKey: str, paramValue: str, table: str) -> list:
         query = f"SELECT * FROM {table} WHERE  {paramKey} = '{paramValue}';"
-        # print(query)
-        c = self.__conn.cursor(prepared=True)
-        c.execute(query)
-        rows = c.fetchall()  # In realtà qui tornerà sempre e solo una riga
-        result = []
-        for r in rows:  # Questo for viene eseguito solo una volta su una sola riga
-            result.append(dict(zip(c.column_names, r)))
-            # print(result)
+        
+        try:
+            c = self.__conn.cursor(prepared=True)
+            c.execute(query)
+            rows = c.fetchall()  # In realtà qui tornerà sempre e solo una riga
+            result = []
+            for r in rows:  # Questo for viene eseguito solo una volta su una sola riga
+                result.append(dict(zip(c.column_names, r)))
+        except ConnectionError as e:
+            result = []
+        except mysql.connector.errors.InterfaceError as e:
+            result = []
+            
         return result
 
     def updateRowByParam(self, paramKey1: str, paramValue: str, table: str, paramKey2: str, Value: str):
